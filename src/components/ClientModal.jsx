@@ -11,7 +11,6 @@ export default function ClientModal({
   const [name, setName] = useState("");
   const [schedules, setSchedules] = useState([]);
 
-  // RESET CORRECTO
   useEffect(() => {
     if (!isOpen) return;
 
@@ -35,7 +34,7 @@ export default function ClientModal({
   const addSchedule = () => {
     setSchedules((prev) => [
       ...prev,
-      { day: "monday", start: "07:00" },
+      { day: "monday", start: "07:00", note: "" },
     ]);
   };
 
@@ -55,9 +54,16 @@ export default function ClientModal({
     onClose();
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      save();
+    }
+  };
+
   return (
     <div style={overlay}>
-      <div style={modal}>
+      <div style={modal} onKeyDown={handleKeyDown} tabIndex={-1}>
         <h2 style={title}>
           {client ? "Editar cliente" : "Nuevo cliente"}
         </h2>
@@ -67,46 +73,59 @@ export default function ClientModal({
           style={input}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Nombre completo"
         />
 
         <label style={label}>Horarios</label>
 
         {schedules.map((s, i) => (
-          <div key={i} style={row}>
-            <select
-              style={select}
-              value={s.day}
-              onChange={(e) =>
-                updateSchedule(i, "day", e.target.value)
-              }
-            >
-              {DAYS.map((d) => (
-                <option key={d.key} value={d.key}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+          <div key={i} style={scheduleBlock}>
+            <div style={row}>
+              <select
+                style={select}
+                value={s.day}
+                onChange={(e) =>
+                  updateSchedule(i, "day", e.target.value)
+                }
+              >
+                {DAYS.map((d) => (
+                  <option key={d.key} value={d.key}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
 
-            <select
-              style={select}
-              value={s.start}
-              onChange={(e) =>
-                updateSchedule(i, "start", e.target.value)
-              }
-            >
-              {TIME_SLOTS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+              <select
+                style={select}
+                value={s.start}
+                onChange={(e) =>
+                  updateSchedule(i, "start", e.target.value)
+                }
+              >
+                {TIME_SLOTS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
 
-            <button
-              style={removeBtn}
-              onClick={() => removeSchedule(i)}
-            >
-              ✕
-            </button>
+              <button
+                style={removeScheduleBtn}
+                onClick={() => removeSchedule(i)}
+                title="Eliminar horario"
+              >
+                ✕
+              </button>
+            </div>
+
+            <input
+              style={input}
+              placeholder="Nota (opcional)"
+              value={s.note || ""}
+              onChange={(e) =>
+                updateSchedule(i, "note", e.target.value)
+              }
+            />
           </div>
         ))}
 
@@ -123,29 +142,34 @@ export default function ClientModal({
                 onClose();
               }}
             >
-              Eliminar
+              Eliminar cliente
             </button>
           )}
 
-          <button style={cancelBtn} onClick={onClose}>
-            Cancelar
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={cancelBtn} onClick={onClose}>
+              Cancelar
+            </button>
 
-          <button style={saveBtn} onClick={save}>
-            Guardar
-          </button>
+            <button style={saveBtn} onClick={save}>
+              Guardar
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ===== estilos (coherentes con la app) ===== */
+/* ===============================
+   ESTILOS
+   =============================== */
 
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.6)",
+  background: "rgba(0,0,0,0.75)",
+  backdropFilter: "blur(4px)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -153,31 +177,42 @@ const overlay = {
 };
 
 const modal = {
-  background: "#ffffff",
-  padding: 20,
-  borderRadius: 14,
-  width: 440,
+  background: "var(--black-800)",
+  color: "var(--text-primary)",
+  padding: 22,
+  borderRadius: 16,
+  width: 460,
+  border: "1px solid var(--border-subtle)",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+  outline: "none",
 };
 
 const title = {
   margin: 0,
-  marginBottom: 12,
+  marginBottom: 14,
   fontSize: 20,
-  fontWeight: 800,
+  fontWeight: 700,
 };
 
 const label = {
-  fontSize: 13,
-  fontWeight: 700,
-  marginTop: 10,
-  marginBottom: 4,
+  fontSize: 12,
+  fontWeight: 600,
+  marginTop: 12,
+  marginBottom: 6,
+  color: "var(--text-secondary)",
 };
 
 const input = {
   width: "100%",
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #cbd5e1",
+  padding: "9px 11px",
+  borderRadius: 10,
+  border: "1px solid var(--border-subtle)",
+  background: "var(--bg-panel)",
+  color: "var(--text-primary)",
+};
+
+const scheduleBlock = {
+  marginBottom: 12,
 };
 
 const row = {
@@ -189,59 +224,63 @@ const row = {
 
 const select = {
   flex: 1,
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #cbd5e1",
+  padding: "9px 11px",
+  borderRadius: 10,
+  border: "1px solid var(--border-subtle)",
+  background: "var(--bg-panel)",
+  color: "var(--text-primary)",
 };
 
-const removeBtn = {
-  background: "#b91c1c",
-  color: "#ffffff",
-  border: "none",
-  borderRadius: 6,
+const removeScheduleBtn = {
+  background: "transparent",
+  color: "var(--red-500)",
+  border: "1px solid var(--border-subtle)",
+  borderRadius: 8,
   padding: "6px 10px",
   cursor: "pointer",
+  fontWeight: 700,
 };
 
 const addBtn = {
-  marginTop: 8,
-  padding: "8px 12px",
-  borderRadius: 8,
-  border: "none",
-  background: "#0f172a",
-  color: "#ffffff",
-  fontWeight: 700,
+  marginTop: 10,
+  padding: "8px 14px",
+  borderRadius: 10,
+  border: "1px solid var(--border-subtle)",
+  background: "var(--black-900)",
+  color: "var(--text-primary)",
+  fontWeight: 600,
 };
 
 const actions = {
   display: "flex",
   justifyContent: "space-between",
-  marginTop: 16,
+  alignItems: "center",
+  marginTop: 20,
 };
 
 const cancelBtn = {
-  background: "#f1f5f9",
-  color: "#0f172a",
-  border: "1px solid #cbd5e1",
-  borderRadius: 8,
+  background: "transparent",
+  color: "var(--text-secondary)",
+  border: "1px solid var(--border-subtle)",
+  borderRadius: 10,
   padding: "8px 14px",
-  fontWeight: 700,
+  fontWeight: 600,
 };
 
 const saveBtn = {
-  background: "#0f172a",
+  background: "var(--red-500)",
   color: "#ffffff",
   border: "none",
-  borderRadius: 8,
-  padding: "8px 16px",
-  fontWeight: 800,
+  borderRadius: 10,
+  padding: "8px 18px",
+  fontWeight: 700,
 };
 
 const deleteBtn = {
-  background: "#b91c1c",
-  color: "#ffffff",
-  border: "none",
-  borderRadius: 8,
+  background: "transparent",
+  color: "var(--red-500)",
+  border: "1px solid var(--red-500)",
+  borderRadius: 10,
   padding: "8px 14px",
-  fontWeight: 800,
+  fontWeight: 600,
 };

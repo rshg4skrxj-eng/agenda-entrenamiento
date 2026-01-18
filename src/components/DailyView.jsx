@@ -65,19 +65,16 @@ export default function DailyView({
   };
 
   return (
-    <div style={{ color: "#111827" }}>
-      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+    <div style={{ color: "var(--text-primary)" }}>
+      {/* Selector de día */}
+      <div style={daySelector}>
         {DAYS.map((d) => (
           <button
             key={d.key}
             onClick={() => setSelectedDay(d.key)}
             style={{
-              padding: "6px 12px",
-              background: selectedDay === d.key ? "#dc2626" : "#e5e7eb",
-              color: selectedDay === d.key ? "#ffffff" : "#111827",
-              border: "none",
-              borderRadius: 6,
-              fontWeight: 700,
+              ...dayBtn,
+              ...(selectedDay === d.key ? dayBtnActive : {}),
             }}
           >
             {d.label}
@@ -85,31 +82,28 @@ export default function DailyView({
         ))}
       </div>
 
+      {/* Slots */}
       {TIME_SLOTS.map((time) => {
         const list = getClientsInSlot(selectedDay, time);
+        const isFull = list.length >= MAX_CLIENTS_PER_SLOT;
+
         return (
           <div
             key={time}
             onClick={() => openNew(time)}
             style={{
-              display: "flex",
-              gap: 12,
-              padding: "8px 12px",
-              border: "1px solid #9ca3af",
-              borderRadius: 6,
-              marginBottom: 6,
-              cursor: "pointer",
-              background:
-                list.length >= MAX_CLIENTS_PER_SLOT
-                  ? "#fee2e2"
-                  : "#ffffff",
+              ...slotRow,
+              background: isFull
+                ? "rgba(196,22,28,0.15)"
+                : "var(--bg-card)",
+              borderColor: isFull
+                ? "var(--red-500)"
+                : "var(--border-subtle)",
             }}
           >
-            <div style={{ width: 70, fontWeight: 800, color: "#111827" }}>
-              {time}
-            </div>
+            <div style={slotTime}>{time}</div>
 
-            <div style={{ flex: 1 }}>
+            <div style={slotClients}>
               {list.map((c) => (
                 <span
                   key={c.id}
@@ -117,22 +111,21 @@ export default function DailyView({
                     e.stopPropagation();
                     openEdit(c);
                   }}
-                  style={{
-                    background: "#dc2626",
-                    color: "#ffffff",
-                    padding: "2px 6px",
-                    borderRadius: 4,
-                    marginRight: 6,
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
+                  style={clientChip}
                 >
                   {c.name}
                 </span>
               ))}
             </div>
 
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>
+            <div
+              style={{
+                ...slotCount,
+                color: isFull
+                  ? "var(--red-500)"
+                  : "var(--text-secondary)",
+              }}
+            >
               {list.length}/{MAX_CLIENTS_PER_SLOT}
             </div>
           </div>
@@ -157,6 +150,75 @@ export default function DailyView({
     </div>
   );
 }
+
+/* ===============================
+   ESTILOS
+   =============================== */
+
+const daySelector = {
+  display: "flex",
+  gap: 6,
+  marginBottom: 14,
+};
+
+const dayBtn = {
+  padding: "6px 14px",
+  borderRadius: 8,
+  border: "1px solid var(--border-subtle)",
+  background: "var(--bg-panel)",
+  color: "var(--text-secondary)",
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const dayBtnActive = {
+  background: "var(--red-500)",
+  borderColor: "var(--red-500)",
+  color: "#ffffff",
+};
+
+const slotRow = {
+  display: "flex",
+  gap: 12,
+  padding: "8px 12px",
+  border: "1px solid var(--border-subtle)",
+  borderRadius: 10,
+  marginBottom: 6,
+  cursor: "pointer",
+  alignItems: "center",
+};
+
+const slotTime = {
+  width: 70,
+  fontWeight: 700,
+  fontSize: 13,
+  color: "var(--text-primary)",
+};
+
+const slotClients = {
+  flex: 1,
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 6,
+};
+
+const clientChip = {
+  background: "var(--red-500)",
+  color: "#ffffff",
+  padding: "3px 8px",
+  borderRadius: 6,
+  fontSize: 12,
+  fontWeight: 600,
+};
+
+const slotCount = {
+  fontSize: 12,
+  fontWeight: 600,
+};
+
+/* ===============================
+   UTILS
+   =============================== */
 
 function addOneHour(time) {
   const [h, m] = time.split(":").map(Number);

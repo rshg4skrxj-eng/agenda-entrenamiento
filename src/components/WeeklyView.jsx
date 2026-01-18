@@ -1,26 +1,16 @@
-import { useState } from "react";
 import { DAYS, TIME_SLOTS } from "../data/mock";
-import ClientModal from "./ClientModal";
 
 const HOUR_HEIGHT = 48;
 const HEADER_HEIGHT = 40;
 
-const COLORS = [
-  "#dc2626",
-  "#ef4444",
-  "#b91c1c",
-  "#f87171",
+const SESSION_COLORS = [
+  "linear-gradient(180deg, #c4161c, #a91217)",
+  "linear-gradient(180deg, #ef4444, #c4161c)",
+  "linear-gradient(180deg, #991b1b, #7f1d1d)",
+  "linear-gradient(180deg, #f87171, #dc2626)",
 ];
 
-export default function WeeklyView({
-  clients,
-  onAddClient,
-  onUpdateClient,
-  onDeleteClient,
-}) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
-
+export default function WeeklyView({ clients, onEditClient }) {
   const hours = [...new Set(TIME_SLOTS.map(t => t.split(":")[0]))];
 
   const minutes = (t) => {
@@ -34,8 +24,13 @@ export default function WeeklyView({
     return idx * HOUR_HEIGHT + (m / 60) * HOUR_HEIGHT;
   };
 
-  const heightFromRange = (start, end) =>
-    ((minutes(end) - minutes(start)) / 60) * HOUR_HEIGHT;
+  const heightFromRange = (start, end, hasNote) => {
+    const base =
+      ((minutes(end) - minutes(start)) / 60) * HOUR_HEIGHT;
+
+    // 🔴 ALTURA MÍNIMA PARA QUE ENTRE LA NOTA
+    return Math.max(base, hasNote ? 64 : 48);
+  };
 
   const sessionsByDay = (day) =>
     clients.flatMap(client =>
@@ -45,6 +40,7 @@ export default function WeeklyView({
           client,
           start: s.start,
           end: addOneHour(s.start),
+          note: s.note || "",
         }))
     );
 
@@ -74,156 +70,131 @@ export default function WeeklyView({
   const gridHeight = hours.length * HOUR_HEIGHT;
 
   return (
-    <div>
-      <button
-        style={addClientBtn}
-        onClick={() => {
-          setEditingClient(null);
-          setIsModalOpen(true);
-        }}
-      >
-        + Agregar cliente
-      </button>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "70px repeat(6, 1fr)",
+        gridTemplateRows: `${HEADER_HEIGHT}px ${gridHeight}px`,
+        background: "var(--black-900)",
+        border: "1px solid var(--border-subtle)",
+        borderRadius: 12,
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ background: "var(--black-800)" }} />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "70px repeat(6, 1fr)",
-          gridTemplateRows: `${HEADER_HEIGHT}px ${gridHeight}px`,
-          background: "#ffffff",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ background: "#111827" }} />
+      {DAYS.map(d => (
+        <div key={d.key} style={dayHeader}>
+          {d.label}
+        </div>
+      ))}
 
-        {DAYS.map(d => (
-          <div key={d.key} style={dayHeader}>
-            {d.label}
+      <div style={hoursCol}>
+        {hours.map(h => (
+          <div key={h} style={{ ...hourCell, height: HOUR_HEIGHT }}>
+            {h}:00
           </div>
         ))}
-
-        <div style={hoursCol}>
-          {hours.map(h => (
-            <div key={h} style={{ ...hourCell, height: HOUR_HEIGHT }}>
-              {h}:00
-            </div>
-          ))}
-        </div>
-
-        {DAYS.map(day => {
-          const sessions = sessionsByDay(day.key);
-          const stacks = stackSessions(sessions);
-          const columnWidth = 100 / stacks.length;
-
-          return (
-            <div key={day.key} style={dayCol}>
-              <div style={{ position: "relative", height: gridHeight }}>
-                {stacks.map((stack, colIndex) =>
-                  stack.map((s) => (
-                    <div
-                      key={s.client.id + s.start}
-                      style={{
-                        ...session,
-                        top: topFromTime(s.start),
-                        height: heightFromRange(s.start, s.end),
-                        left: `${colIndex * columnWidth}%`,
-                        width: `${columnWidth}%`,
-                        background:
-                          COLORS[colIndex % COLORS.length],
-                      }}
-                      onClick={() => {
-                        setEditingClient(s.client);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      <div style={content}>
-                        <div style={name}>{s.client.name}</div>
-                        <div style={time}>{s.start}</div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          );
-        })}
       </div>
 
-      <ClientModal
-        isOpen={isModalOpen}
-        client={editingClient}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingClient(null);
-        }}
-        onSave={(c) =>
-          editingClient ? onUpdateClient(c) : onAddClient(c)
-        }
-        onDelete={(id) => {
-          onDeleteClient(id);
-          setIsModalOpen(false);
-          setEditingClient(null);
-        }}
-      />
+      {DAYS.map(day => {
+        const sessions = sessionsByDay(day.key);
+        const stacks = stackSessions(sessions);
+        const columnWidth = 100 / stacks.length;
+
+        return (
+          <div key={day.key} style={dayCol}>
+            <div style={{ position: "relative", height: gridHeight }}>
+              {stacks.map((stack, colIndex) =>
+                stack.map((s) => (
+                  <div
+                    key={s.client.id + s.start}
+                    style={{
+                      ...session,
+                      top: topFromTime(s.start),
+                      height: heightFromRange(
+                        s.start,
+                        s.end,
+                        !!s.note
+                      ),
+                      left: `${colIndex * columnWidth}%`,
+                      width: `${columnWidth}%`,
+                      background:
+                        SESSION_COLORS[colIndex % SESSION_COLORS.length],
+                    }}
+                    onClick={() => onEditClient(s.client)}
+                  >
+                    <div style={content}>
+                      <div style={name}>{s.client.name}</div>
+                      <div style={time}>{s.start}</div>
+                      {s.note && <div style={note}>{s.note}</div>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-/* estilos */
-
-const addClientBtn = {
-  marginBottom: 12,
-  background: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 14px",
-  fontWeight: 700,
-};
+/* ===== estilos ===== */
 
 const dayHeader = {
-  background: "#111827",
-  color: "#ffffff",
-  fontWeight: 700,
+  background: "var(--black-800)",
+  color: "var(--text-primary)",
+  fontWeight: 600,
   fontSize: 13,
   display: "flex",
   alignItems: "center",
-  paddingLeft: 8,
+  paddingLeft: 10,
+  borderLeft: "1px solid var(--border-subtle)",
 };
 
-const hoursCol = { background: "#1f2937" };
+const hoursCol = {
+  background: "var(--black-800)",
+  borderRight: "1px solid var(--border-subtle)",
+};
 
 const hourCell = {
-  color: "#ffffff",
-  fontWeight: 700,
-  fontSize: 13,
+  color: "var(--text-secondary)",
+  fontWeight: 500,
+  fontSize: 12,
   padding: "6px 8px",
 };
 
 const dayCol = {
-  borderLeft: "1px solid #e5e7eb",
+  borderLeft: "1px solid var(--border-subtle)",
 };
 
 const session = {
   position: "absolute",
-  borderRadius: 6,
-  boxSizing: "border-box",
+  borderRadius: 8,
   cursor: "pointer",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.35)",
 };
 
 const content = {
-  padding: "4px 6px",
+  padding: "6px 8px",
 };
 
 const name = {
   fontSize: 12,
-  fontWeight: 700,
+  fontWeight: 600,
   color: "#ffffff",
 };
 
 const time = {
   fontSize: 11,
-  color: "#ffffff",
+  color: "rgba(255,255,255,0.9)",
+};
+
+const note = {
+  fontSize: 10,
+  marginTop: 2,
+  color: "rgba(255,255,255,0.8)",
 };
 
 function addOneHour(time) {

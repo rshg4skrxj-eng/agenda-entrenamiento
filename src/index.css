@@ -1,11 +1,47 @@
+/* ===============================
+   BASE – IDENTIDAD ESTUDIO M
+   Paleta: Negro / Rojo / Blanco
+   =============================== */
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  /* Tipografía */
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.45;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Colores base */
+  --black-900: #0b0b0c;
+  --black-800: #121214;
+  --black-700: #1a1a1d;
+
+  --red-500: #c4161c;
+  --red-600: #a91217;
+
+  --white-100: #ffffff;
+  --white-200: #e6e6e6;
+  --white-300: #bdbdbd;
+
+  /* Texto */
+  --text-primary: var(--white-100);
+  --text-secondary: var(--white-300);
+  --text-muted: #8a8a8a;
+
+  /* Fondo */
+  --bg-app: var(--black-900);
+  --bg-panel: var(--black-800);
+  --bg-card: var(--black-700);
+
+  /* Bordes */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Estados */
+  --focus-ring: rgba(196, 22, 28, 0.5);
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--bg-app);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,56 +49,175 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* ===============================
+   RESET BÁSICO
+   =============================== */
+
+* {
+  box-sizing: border-box;
 }
-a:hover {
-  color: #535bf2;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
 }
 
 body {
-  margin: 0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
   display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ===============================
+   LINKS
+   =============================== */
+
+a {
+  font-weight: 500;
+  color: var(--red-500);
+  text-decoration: none;
 }
+
+a:hover {
+  color: var(--red-600);
+}
+
+/* ===============================
+   HEADINGS
+   =============================== */
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: 2.4rem;
+  line-height: 1.15;
+}
+
+/* ===============================
+   BOTONES
+   =============================== */
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.55em 1.1em;
+  font-size: 0.95rem;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    transform 0.05s ease;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+  border-color: var(--red-500);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Variante primaria (si existe clase) */
+button.primary {
+  background-color: var(--red-500);
+  border-color: var(--red-500);
+  color: var(--white-100);
+}
+
+button.primary:hover {
+  background-color: var(--red-600);
+}
+
+/* ===============================
+   INPUTS / SELECTS / TEXTAREA
+   =============================== */
+
+input,
+select,
+textarea {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.5em 0.65em;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--red-500);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/* ===============================
+   TARJETAS / PANELES (BASE)
+   =============================== */
+
+.card,
+.panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-primary);
+}
+
+/* Tonos alternativos para diferenciar cuadros */
+.card.soft {
+  background-color: var(--black-800);
+}
+
+.card.strong {
+  background-color: #1f1f22;
+}
+
+/* ===============================
+   SCROLLBAR (ELEGANTE)
+   =============================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #2b2b2f;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--red-500);
 }
